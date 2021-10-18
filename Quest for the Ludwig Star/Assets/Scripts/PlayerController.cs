@@ -8,8 +8,10 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private BoxCollider2D bc;
     private float horizontalMove;
-    public float coyoteTimeCounter;
-    public float jumpBufferCounter;
+    private float coyoteTimeCounter;
+    private float jumpBufferCounter;
+    private Vector2 aimDir = Vector2.right;
+    public bool throwMode = false;
 
     // Public Variables
     public float speed;
@@ -18,6 +20,7 @@ public class PlayerController : MonoBehaviour
     public float coyoteTime;
     public float jumpBufferTime;
     public LayerMask groundLayer;
+    public GameObject star;
 
     // Start is called before the first frame update
     void Start()
@@ -29,30 +32,51 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // On the ground movement
-        if (Grounded())
+        // Throw Mode
+        if (Input.GetButtonDown("Throw")) throwMode = true;
+        if (Input.GetButtonUp("Throw") && throwMode)
         {
-            if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
-            // If touching left wall only move away
-            else if (TouchingWallLeft())
+            if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
             {
-                if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                else horizontalMove = 0;
+                aimDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             }
-            // If touching right wall only move away
-            else if (TouchingWallRight())
+            GameObject currentStar = Instantiate(star, transform.position, transform.rotation);
+            currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
+            Physics2D.IgnoreCollision(currentStar.GetComponent<CircleCollider2D>(), this.GetComponent<BoxCollider2D>());
+            throwMode = false;
+        }
+
+        //Movement if not in throw mode
+        if (!throwMode)
+        {
+            // On the ground movement
+            if (Grounded())
             {
-                if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                else horizontalMove = 0;
+                if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
+                // If touching left wall only move away
+                else if (TouchingWallLeft())
+                {
+                    if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                    else horizontalMove = 0;
+                }
+                // If touching right wall only move away
+                else if (TouchingWallRight())
+                {
+                    if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                    else horizontalMove = 0;
+                }
+            } // If touching a wall in air
+            else if (TouchingWallLeft() || TouchingWallRight())
+            {
+                horizontalMove = 0;
+            } // In air movement
+            else
+            {
+                horizontalMove = Input.GetAxisRaw("Horizontal");
             }
-        } // If touching a wall in air
-        else if (TouchingWallLeft() || TouchingWallRight())
+        } else
         {
-            horizontalMove = 0;
-        } // In air movement
-        else
-        {
-            horizontalMove = Input.GetAxisRaw("Horizontal");
+            if(Grounded()) horizontalMove = 0;
         }
 
         // Coyote Time
