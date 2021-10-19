@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     private bool throwMode = false;
     private GameObject currentStar;
     private GameObject reticle;
+    private Animator animator;
+    private SpriteRenderer sr;
 
 
     // Public Variables
@@ -36,6 +38,8 @@ public class PlayerController : MonoBehaviour
     {
         rb = this.GetComponent<Rigidbody2D>();
         bc = this.GetComponent<BoxCollider2D>();
+        animator = this.GetComponent<Animator>();
+        sr = this.GetComponent<SpriteRenderer>();
         reticle = this.transform.GetChild(1).gameObject;
         reticle.GetComponent<SpriteRenderer>().enabled = false;
     }
@@ -118,6 +122,10 @@ public class PlayerController : MonoBehaviour
         // Star Buffer
         if(starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
 
+        // Reset anims
+        if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1) animator.SetBool("isJumping", false);
+        animator.SetFloat("VerticalSpeed", rb.velocity.y);
+
         // Star Jump
         if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
         {
@@ -126,6 +134,8 @@ public class PlayerController : MonoBehaviour
             starBufferCounter = starBufferTime * 2;
             jumpBufferCounter = 0f;
             coyoteTimeCounter = 0f;
+
+            animator.SetBool("isJumping", true);
 
             Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
             rb.velocity = new Vector2(rb.velocity.x, 0);
@@ -138,16 +148,26 @@ public class PlayerController : MonoBehaviour
             jumpBufferCounter = 0f;
             coyoteTimeCounter = 0f;
 
+            animator.SetBool("isJumping", true);
+
             Vector2 jumpForce = new Vector2(0, jumpHeight);
             rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
         }
+
+        // Sprite Flip
+        if (rb.velocity.x > 0.1) sr.flipX = false;
+        else if (rb.velocity.x < -0.1) sr.flipX = true;
     }
 
     private void FixedUpdate()
     {
-        if(Grounded()) rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
+        if (Grounded())
+        {
+            animator.SetFloat("HorizontalMovement", Mathf.Abs(horizontalMove));
+            rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
+        }
         else
         {
             rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
