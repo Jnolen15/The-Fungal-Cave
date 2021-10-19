@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2295373042706489242}
   - component: {fileID: 2295373042706489243}
   - component: {fileID: 2295373042706489240}
-  - component: {fileID: 2295373042706489241}
   - component: {fileID: -5639252164699358150}
   m_Layer: 0
   m_Name: LudwigStar
@@ -124,22 +123,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!58 &2295373042706489241
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2295373042706489246}
-  m_Enabled: 0
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.5
 --- !u!61 &-5639252164699358150
 BoxCollider2D:
   m_ObjectHideFlags: 0

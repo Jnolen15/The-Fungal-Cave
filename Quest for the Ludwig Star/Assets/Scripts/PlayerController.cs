@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
     public bool starOverlap = false;
     public bool starOut = false;
     public float starBonus;
+    public TimeControl tc;
 
     // Start is called before the first frame update
     void Start()
@@ -49,6 +50,7 @@ public class PlayerController : MonoBehaviour
             {
                 throwMode = true;
                 reticle.GetComponent<SpriteRenderer>().enabled = true;
+                tc.doSlowMotion();
             }
             if (Input.GetButton("Throw")) // While button is down
             {
@@ -60,6 +62,7 @@ public class PlayerController : MonoBehaviour
             }
             if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
             {
+                tc.resetTime = true;
                 reticle.GetComponent<SpriteRenderer>().enabled = false;
                 currentStar = Instantiate(star, transform.position, transform.rotation);
                 currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
