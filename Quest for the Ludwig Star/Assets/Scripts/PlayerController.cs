@@ -64,7 +64,7 @@ public class PlayerController : MonoBehaviour
             {
                 tc.resetTime = true;
                 reticle.GetComponent<SpriteRenderer>().enabled = false;
-                currentStar = Instantiate(star, transform.position, transform.rotation);
+                currentStar = Instantiate(star, reticle.transform.position, reticle.transform.rotation);
                 currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
                 currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
                 Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
