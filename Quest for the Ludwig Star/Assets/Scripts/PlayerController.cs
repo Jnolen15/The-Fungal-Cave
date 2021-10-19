@@ -10,8 +10,10 @@ public class PlayerController : MonoBehaviour
     private float horizontalMove;
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
+    private float starBufferCounter;
     private Vector2 aimDir = Vector2.right;
-    public bool throwMode = false;
+    private bool throwMode = false;
+
 
     // Public Variables
     public float speed;
@@ -19,8 +21,11 @@ public class PlayerController : MonoBehaviour
     public float midAirControl;
     public float coyoteTime;
     public float jumpBufferTime;
+    public float starBufferTime;
     public LayerMask groundLayer;
     public GameObject star;
+    public bool starOverlap = false;
+    public bool starOut = false;
 
     // Start is called before the first frame update
     void Start()
@@ -32,18 +37,24 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Throw Mode
-        if (Input.GetButtonDown("Throw")) throwMode = true;
-        if (Input.GetButtonUp("Throw") && throwMode)
+        // Throw Mode (Only if star isn't already out)
+        if (!starOut)
         {
-            if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+            if (Input.GetButtonDown("Throw")) throwMode = true;
+            if (Input.GetButtonUp("Throw") && throwMode)
             {
-                aimDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                {
+                    aimDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                }
+                GameObject currentStar = Instantiate(star, transform.position, transform.rotation);
+                currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
+                currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
+                Physics2D.IgnoreCollision(currentStar.GetComponent<CircleCollider2D>(), this.GetComponent<BoxCollider2D>());
+                throwMode = false;
+                starOut = true;
+                starBufferCounter = starBufferTime;
             }
-            GameObject currentStar = Instantiate(star, transform.position, transform.rotation);
-            currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
-            Physics2D.IgnoreCollision(currentStar.GetComponent<CircleCollider2D>(), this.GetComponent<BoxCollider2D>());
-            throwMode = false;
         }
 
         //Movement if not in throw mode
@@ -80,12 +91,15 @@ public class PlayerController : MonoBehaviour
         }
 
         // Coyote Time
-        if (Grounded()) coyoteTimeCounter = coyoteTime;
+        if (Grounded() || (starOverlap && starBufferCounter <= 0)) coyoteTimeCounter = coyoteTime;
         else if (coyoteTimeCounter > 0) coyoteTimeCounter -= Time.deltaTime;
 
         // Jump Buffer
         if (Input.GetButtonDown("Jump")) jumpBufferCounter = jumpBufferTime;
         else if (jumpBufferCounter > 0) jumpBufferCounter -= Time.deltaTime;
+
+        // Star Buffer
+        if(starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
 
         // Get Jump
         if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
@@ -94,8 +108,11 @@ public class PlayerController : MonoBehaviour
             coyoteTimeCounter = 0f;
 
             Vector2 jumpForce = new Vector2(0, jumpHeight);
+            rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
+
+            if(starOverlap) starBufferCounter = starBufferTime * 2;
         }
     }
 

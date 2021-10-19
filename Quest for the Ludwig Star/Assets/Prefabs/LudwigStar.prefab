@@ -97,8 +97,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad5701cf1ed17e7498f636eb02c1cce6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pc: {fileID: 0}
   direction: {x: 0, y: 0}
   speed: 10
+  bounces: 1
+  life: 2.5
 --- !u!50 &2295373042706489240
 Rigidbody2D:
   serializedVersion: 4
@@ -107,18 +110,18 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2295373042706489246}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_GravityScale: 0
+  m_Material: {fileID: 6200000, guid: 7291955db7d93074599da28168d8abf5, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!58 &2295373042706489241
 CircleCollider2D:
