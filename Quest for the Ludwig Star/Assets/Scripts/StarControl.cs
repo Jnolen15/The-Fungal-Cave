@@ -47,5 +47,12 @@ public class StarControl : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+
+        //Debug.Log("Hit " + col.gameObject.tag);
+        if (col.gameObject.tag == "Hazard")
+        {
+            pc.starOut = false;
+            Destroy(gameObject);
+        }
     }
 }

@@ -10,7 +10,7 @@ public class StarOverlap : MonoBehaviour
     {
         if (col.gameObject.tag == "Star")
         {
-            Debug.Log(col.gameObject.tag);
+            //Debug.Log(col.gameObject.tag);
             pc.starOverlap = true;
         }
     }
@@ -19,7 +19,7 @@ public class StarOverlap : MonoBehaviour
     {
         if (col.gameObject.tag == "Star")
         {
-            Debug.Log(col.gameObject.tag);
+            //Debug.Log(col.gameObject.tag);
             pc.starOverlap = false;
         }
     }

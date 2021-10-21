@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     private float starBufferCounter;
     private Vector3 aimDir = Vector3.right;
     private bool throwMode = false;
+    private bool falling = false;
+    private bool faceplant = true;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -27,11 +29,14 @@ public class PlayerController : MonoBehaviour
     public float jumpBufferTime;
     public float starBufferTime;
     public LayerMask groundLayer;
+    public LayerMask hazardLayer;
     public GameObject star;
     public bool starOverlap = false;
     public bool starOut = false;
     public float starBonus;
     public TimeControl tc;
+    public float knockbackH;
+    public float knockbackV;
 
     // Start is called before the first frame update
     void Start()
@@ -47,68 +52,115 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Throw Mode (Only if star isn't already out)
-        if (!starOut)
+        // If not falling normal movement
+        if (!falling)
         {
-            if (Input.GetButtonDown("Throw")) // When button is pressed
+            // Throw Mode (Only if star isn't already out)
+            if (!starOut)
             {
-                throwMode = true;
-                reticle.GetComponent<SpriteRenderer>().enabled = true;
-                tc.doSlowMotion();
-            }
-            if (Input.GetButton("Throw")) // While button is down
-            {
-                if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                if (Input.GetButtonDown("Throw")) // When button is pressed
                 {
-                    aimDir = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                    throwMode = true;
+                    reticle.GetComponent<SpriteRenderer>().enabled = true;
+                    tc.doSlowMotion();
                 }
-                reticle.transform.position = this.transform.position + aimDir;
+                if (Input.GetButton("Throw")) // While button is down
+                {
+                    if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                    {
+                        aimDir = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                    }
+                    reticle.transform.position = this.transform.position + aimDir;
+                }
+                if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
+                {
+                    tc.resetTime = true;
+                    reticle.GetComponent<SpriteRenderer>().enabled = false;
+                    currentStar = Instantiate(star, reticle.transform.position, reticle.transform.rotation);
+                    currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
+                    currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
+                    Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
+                    throwMode = false;
+                    starOut = true;
+                    starBufferCounter = starBufferTime;
+                }
             }
-            if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
-            {
-                tc.resetTime = true;
-                reticle.GetComponent<SpriteRenderer>().enabled = false;
-                currentStar = Instantiate(star, reticle.transform.position, reticle.transform.rotation);
-                currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
-                currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
-                Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
-                throwMode = false;
-                starOut = true;
-                starBufferCounter = starBufferTime;
-            }
-        }
 
-        //Movement if not in throw mode
-        if (!throwMode)
-        {
-            // On the ground movement
-            if (Grounded())
+            //Movement if not in throw mode
+            if (!throwMode)
             {
-                if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
-                // If touching left wall only move away
-                else if (TouchingWallLeft())
+                // On the ground movement
+                if (Grounded())
                 {
-                    if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                    else horizontalMove = 0;
-                }
-                // If touching right wall only move away
-                else if (TouchingWallRight())
+                    if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
+                    // If touching left wall only move away
+                    else if (TouchingWallLeft())
+                    {
+                        if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                        else horizontalMove = 0;
+                    }
+                    // If touching right wall only move away
+                    else if (TouchingWallRight())
+                    {
+                        if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                        else horizontalMove = 0;
+                    }
+                } // If touching a wall in air
+                else if (TouchingWallLeft() || TouchingWallRight())
                 {
-                    if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                    else horizontalMove = 0;
+                    horizontalMove = 0;
+                } // In air movement
+                else
+                {
+                    horizontalMove = Input.GetAxisRaw("Horizontal");
                 }
-            } // If touching a wall in air
-            else if (TouchingWallLeft() || TouchingWallRight())
-            {
-                horizontalMove = 0;
-            } // In air movement
+            }
             else
             {
-                horizontalMove = Input.GetAxisRaw("Horizontal");
+                if (Grounded()) horizontalMove = 0;
             }
-        } else
+
+            // Star Jump
+            if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
+            {
+                starOut = false;
+                Destroy(currentStar);
+                starBufferCounter = starBufferTime * 2;
+                jumpBufferCounter = 0f;
+                coyoteTimeCounter = 0f;
+
+                animator.SetBool("isJumping", true);
+
+                Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
+            }
+            // Normal Jump
+            else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
+            {
+                jumpBufferCounter = 0f;
+                coyoteTimeCounter = 0f;
+
+                animator.SetBool("isJumping", true);
+
+                Vector2 jumpForce = new Vector2(0, jumpHeight);
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
+            }
+
+        }
+        // If falling
+        else
         {
-            if(Grounded()) horizontalMove = 0;
+            if (Grounded())
+            {
+                faceplant = true;
+                falling = false;
+                animator.SetBool("isFalling", false);
+                animator.SetBool("isFaceplant", true);
+            }
         }
 
         // Coyote Time
@@ -125,36 +177,7 @@ public class PlayerController : MonoBehaviour
         // Reset anims
         if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1) animator.SetBool("isJumping", false);
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
-
-        // Star Jump
-        if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
-        {
-            starOut = false;
-            Destroy(currentStar);
-            starBufferCounter = starBufferTime * 2;
-            jumpBufferCounter = 0f;
-            coyoteTimeCounter = 0f;
-
-            animator.SetBool("isJumping", true);
-
-            Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
-            rb.velocity = new Vector2(rb.velocity.x, 0);
-            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
-        }
-        // Normal Jump
-        else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
-        {
-            jumpBufferCounter = 0f;
-            coyoteTimeCounter = 0f;
-
-            animator.SetBool("isJumping", true);
-
-            Vector2 jumpForce = new Vector2(0, jumpHeight);
-            rb.velocity = new Vector2(rb.velocity.x, 0);
-            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
-        }
+        if(faceplant && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0)) animator.SetBool("isFaceplant", false);
 
         // Sprite Flip
         if (rb.velocity.x > 0.1) sr.flipX = false;
@@ -163,16 +186,20 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (Grounded())
+        if (!falling)
         {
-            animator.SetFloat("HorizontalMovement", Mathf.Abs(horizontalMove));
-            rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
+            if (Grounded())
+            {
+                animator.SetFloat("HorizontalMovement", Mathf.Abs(horizontalMove));
+                rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
+            }
+            else
+            {
+                rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
+                rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+            }
         }
-        else
-        {
-            rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
-            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
-        }
+
     }
 
     public bool Grounded()      //Tests to see if the player is touching the ground in order to jump
@@ -190,5 +217,51 @@ public class PlayerController : MonoBehaviour
     {
         RaycastHit2D raycastHit2d = Physics2D.BoxCast(bc.bounds.center, bc.bounds.size, 0f, Vector2.right, .1f, groundLayer);
         return raycastHit2d.collider != null;
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        //Debug.Log("Hit " + col.gameObject.tag);
+        if (col.gameObject.tag == "Hazard")
+        {
+            animator.SetBool("isJumping", false);
+            animator.SetBool("isFalling", true);
+            falling = true;
+
+            //Vector2 dir = (col.gameObject.transform.position - gameObject.transform.position).normalized;
+            //Debug.Log(dir.x);
+
+            RaycastHit2D raycastHitleft = Physics2D.BoxCast(bc.bounds.center, bc.bounds.size, 0f, Vector2.left, .1f, hazardLayer);
+            RaycastHit2D raycastHitright = Physics2D.BoxCast(bc.bounds.center, bc.bounds.size, 0f, Vector2.right, .1f, hazardLayer);
+            RaycastHit2D raycastHitdown = Physics2D.BoxCast(bc.bounds.center, bc.bounds.size, 0f, Vector2.down, .1f, hazardLayer);
+
+            if (raycastHitleft.collider != null)
+            {
+                Debug.Log("Left");
+                Knockback(knockbackH, knockbackV);
+            }
+            else if (raycastHitright.collider != null)
+            {
+                Debug.Log("Right");
+                Knockback(-knockbackH, knockbackV);
+            }
+            else if (raycastHitdown.collider != null)
+            {
+                Debug.Log("Down");
+                if (Random.value < 0.5f)
+                    Knockback(knockbackH, knockbackV);
+                else
+                    Knockback(-knockbackH, knockbackV);
+            }
+
+        }
+    }
+
+    private void Knockback(float horizontalKB, float verticalKB)
+    {
+        Vector2 knockbackForce = new Vector2(horizontalKB, verticalKB);
+        rb.velocity = new Vector2(0, 0);
+        rb.AddForce(knockbackForce, ForceMode2D.Impulse);
+        rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -knockbackH, knockbackH), Mathf.Clamp(rb.velocity.y, -knockbackV, knockbackV));
     }
 }
