@@ -13,8 +13,9 @@ public class PlayerController : MonoBehaviour
     private float starBufferCounter;
     private Vector3 aimDir = Vector3.right;
     private bool throwMode = false;
-    private bool falling = false;
-    private bool faceplant = true;
+    public bool falling = false;
+    public bool faceplant = false;
+    public bool canGetUp = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -28,6 +29,7 @@ public class PlayerController : MonoBehaviour
     public float coyoteTime;
     public float jumpBufferTime;
     public float starBufferTime;
+    public float faceplantBufferTime;
     public LayerMask groundLayer;
     public LayerMask hazardLayer;
     public GameObject star;
@@ -53,7 +55,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // If not falling normal movement
-        if (!falling)
+        if (!falling && !faceplant)
         {
             // Throw Mode (Only if star isn't already out)
             if (!starOut)
@@ -152,15 +154,25 @@ public class PlayerController : MonoBehaviour
 
         }
         // If falling
-        else
+        else if (falling)
         {
+            // When you hit the ground
             if (Grounded())
             {
+                rb.velocity = new Vector2(0, 0);
                 faceplant = true;
+                canGetUp = false;
                 falling = false;
                 animator.SetBool("isFalling", false);
                 animator.SetBool("isFaceplant", true);
+                StartCoroutine(faceplantCD());
             }
+        }
+        // If faceplanted
+        else if (faceplant)
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y);
+            horizontalMove = 0;
         }
 
         // Coyote Time
@@ -177,7 +189,12 @@ public class PlayerController : MonoBehaviour
         // Reset anims
         if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1) animator.SetBool("isJumping", false);
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
-        if(faceplant && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0)) animator.SetBool("isFaceplant", false);
+        if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0))
+        {
+            faceplant = false;
+            canGetUp = false;
+            animator.SetBool("isFaceplant", false);
+        }
 
         // Sprite Flip
         if (rb.velocity.x > 0.1) sr.flipX = false;
@@ -200,6 +217,12 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+    }
+
+    IEnumerator faceplantCD()
+    {
+        yield return new WaitForSeconds(faceplantBufferTime);
+        canGetUp = true;
     }
 
     public bool Grounded()      //Tests to see if the player is touching the ground in order to jump

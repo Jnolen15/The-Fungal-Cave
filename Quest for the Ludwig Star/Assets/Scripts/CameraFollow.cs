@@ -23,7 +23,7 @@ public class CameraFollow : MonoBehaviour
 
         // More jump king like camera movement
 
-        Debug.Log((target.position.y - (target.position.y % 16)) / 16);
+        //Debug.Log((target.position.y - (target.position.y % 16)) / 16);
         playerLevel = (target.position.y - (target.position.y % 16)) / 16;
 
         // Move up
