@@ -237,17 +237,17 @@ public class PlayerController : MonoBehaviour
 
             if (raycastHitleft.collider != null)
             {
-                Debug.Log("Left");
+                //Debug.Log("Left");
                 Knockback(knockbackH, knockbackV);
             }
             else if (raycastHitright.collider != null)
             {
-                Debug.Log("Right");
+                //Debug.Log("Right");
                 Knockback(-knockbackH, knockbackV);
             }
             else if (raycastHitdown.collider != null)
             {
-                Debug.Log("Down");
+                //Debug.Log("Down");
                 if (Random.value < 0.5f)
                     Knockback(knockbackH, knockbackV);
                 else
