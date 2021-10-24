@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour
                 {
                     throwMode = true;
                     reticle.GetComponent<SpriteRenderer>().enabled = true;
-                    tc.doSlowMotion();
+                    //tc.doSlowMotion();
                 }
                 if (Input.GetButton("Throw")) // While button is down
                 {
@@ -77,9 +77,9 @@ public class PlayerController : MonoBehaviour
                 }
                 if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
                 {
-                    tc.resetTime = true;
+                    //tc.resetTime = true;
                     reticle.GetComponent<SpriteRenderer>().enabled = false;
-                    currentStar = Instantiate(star, reticle.transform.position, reticle.transform.rotation);
+                    currentStar = Instantiate(star, transform.position, transform.rotation);
                     currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
                     currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
                     Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
