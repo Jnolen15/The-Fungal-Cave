@@ -48,7 +48,8 @@ SpriteAtlas:
     - {fileID: 2800000, guid: d80d9ee2e4e5abd48aa7c28af1f0f187, type: 3}
     - {fileID: 2800000, guid: 929fe120dc6e2424999eb855f9be7c6d, type: 3}
     - {fileID: 2800000, guid: b77ab0dedd7803043ae572e8eb4c4bd2, type: 3}
-    totalSpriteSurfaceArea: 55040
+    - {fileID: 2800000, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+    totalSpriteSurfaceArea: 62720
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -239,6 +240,36 @@ SpriteAtlas:
   - {fileID: -6727650476931743520, guid: 3c6bfad61467a984e8b673d078c55b72, type: 3}
   - {fileID: -4421336850635912108, guid: 3c6bfad61467a984e8b673d078c55b72, type: 3}
   - {fileID: -2561044632282854196, guid: 3c6bfad61467a984e8b673d078c55b72, type: 3}
+  - {fileID: 2638105417236673923, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -2362497335233022440, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 8523867107507351535, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -3120905245746836042, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -7887493806913564850, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 1645120078782277418, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 9166695239177976639, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 8703823237681083326, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -7218806112728007234, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 120240577018688316, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -2764490458456712187, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 88966943297019879, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 7649076813507696805, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -642693474775342050, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -1253742577942446112, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -5329593742982287811, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 9112471947738177623, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -2200311811424277347, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -116719495168491520, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -2611078329977225640, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 4887745829815961434, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 580893932178664059, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 4094819267763283771, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -7265380112296338518, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -7324947993490514958, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 5483929346000928111, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: 1594477162046779404, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -1142415885569812332, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -9206993572930816741, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
+  - {fileID: -2368689727539665709, guid: ef8b0d2972d3fcc41808ce14dd31fbaa, type: 3}
   - {fileID: 799021612760418476, guid: b77ab0dedd7803043ae572e8eb4c4bd2, type: 3}
   - {fileID: -6267388214763736828, guid: b77ab0dedd7803043ae572e8eb4c4bd2, type: 3}
   - {fileID: 1890726704741985012, guid: b77ab0dedd7803043ae572e8eb4c4bd2, type: 3}
@@ -455,6 +486,36 @@ SpriteAtlas:
   - tsDecor_39
   - tsDecor_15
   - tsDecor_66
+  - tsBackground 1_8
+  - tsBackground 1_9
+  - tsBackground 1_0
+  - tsBackground 1_1
+  - tsBackground 1_2
+  - tsBackground 1_3
+  - tsBackground 1_4
+  - tsBackground 1_5
+  - tsBackground 1_6
+  - tsBackground 1_7
+  - tsBackground 1_19
+  - tsBackground 1_18
+  - tsBackground 1_13
+  - tsBackground 1_12
+  - tsBackground 1_28
+  - tsBackground 1_11
+  - tsBackground 1_29
+  - tsBackground 1_10
+  - tsBackground 1_26
+  - tsBackground 1_17
+  - tsBackground 1_27
+  - tsBackground 1_16
+  - tsBackground 1_24
+  - tsBackground 1_15
+  - tsBackground 1_25
+  - tsBackground 1_14
+  - tsBackground 1_22
+  - tsBackground 1_23
+  - tsBackground 1_20
+  - tsBackground 1_21
   - tsBackground_1
   - tsBackground_0
   - tsBackground_3
