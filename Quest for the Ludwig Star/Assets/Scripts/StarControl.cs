@@ -13,12 +13,15 @@ public class StarControl : MonoBehaviour
     public Vector2 direction;
     public float speed = 10;
     public float life = 2.5f;
+    public AudioManager audioManager;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.velocity = direction * speed;
+
+        audioManager = pc.audioManager;
     }
 
     private void Update()
@@ -43,6 +46,8 @@ public class StarControl : MonoBehaviour
             float rot = 90 - Mathf.Atan2(reflect.z, reflect.x) * Mathf.Rad2Deg;
             transform.eulerAngles = new Vector3(0, 0, rot);
 
+            audioManager.source.PlayOneShot(audioManager.MushroomBounce);
+
             GameObject particle = Instantiate(fx);
             particle.transform.position = transform.position;
             Destroy(particle, 3f);
@@ -51,6 +56,8 @@ public class StarControl : MonoBehaviour
         if (col.gameObject.tag == "Hazard")
         {
             pc.starOut = false;
+
+            audioManager.source.PlayOneShot(audioManager.MushroomBreak);
 
             GameObject particle = Instantiate(fx);
             particle.transform.position = transform.position;
@@ -62,6 +69,8 @@ public class StarControl : MonoBehaviour
         if (col.gameObject.tag == "Ground")
         {
             pc.starOut = false;
+
+            audioManager.source.PlayOneShot(audioManager.MushroomBreak);
 
             GameObject particle = Instantiate(fx);
             particle.transform.position = transform.position;

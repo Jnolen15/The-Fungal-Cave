@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     public bool falling = false;
     public bool faceplant = false;
     public bool canGetUp = false;
+    public bool landed = true;
+    public bool jumped = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -42,6 +44,7 @@ public class PlayerController : MonoBehaviour
     public float knockbackH;
     public float knockbackV;
     public GameObject fx;
+    public AudioManager audioManager;
 
     // Start is called before the first frame update
     void Start()
@@ -88,6 +91,8 @@ public class PlayerController : MonoBehaviour
                     throwMode = false;
                     starOut = true;
                     starBufferCounter = starBufferTime;
+
+                    audioManager.source.PlayOneShot(audioManager.MushroomThrow);
 
                     // Start float
                     floatCounter = floatTime;
@@ -137,6 +142,8 @@ public class PlayerController : MonoBehaviour
                 jumpBufferCounter = 0f;
                 coyoteTimeCounter = 0f;
 
+                jumped = true;
+                landed = false;
                 animator.SetBool("isJumping", true);
 
                 GameObject particle = Instantiate(fx);
@@ -147,6 +154,8 @@ public class PlayerController : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, 0);
                 rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
                 rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
+
+                audioManager.source.PlayOneShot(audioManager.Jump);
             }
             // Normal Jump
             else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
@@ -154,12 +163,16 @@ public class PlayerController : MonoBehaviour
                 jumpBufferCounter = 0f;
                 coyoteTimeCounter = 0f;
 
+                jumped = true;
+                landed = false;
                 animator.SetBool("isJumping", true);
 
                 Vector2 jumpForce = new Vector2(0, jumpHeight);
                 rb.velocity = new Vector2(rb.velocity.x, 0);
                 rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
                 rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
+
+                //audioManager.source.PlayOneShot(audioManager.Land);
             }
 
         }
@@ -173,6 +186,8 @@ public class PlayerController : MonoBehaviour
                 faceplant = true;
                 canGetUp = false;
                 falling = false;
+                landed = true;
+                audioManager.source.PlayOneShot(audioManager.Faceplant);
                 animator.SetBool("isFalling", false);
                 animator.SetBool("isFaceplant", true);
                 StartCoroutine(faceplantCD());
@@ -200,7 +215,12 @@ public class PlayerController : MonoBehaviour
         if (floatCounter > 0) floatCounter -= Time.deltaTime;
 
         // Reset anims
-        if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1) animator.SetBool("isJumping", false);
+        if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1)
+        {
+            jumped = false;
+            //landed = true;
+            animator.SetBool("isJumping", false);
+        }
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
         if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0))
         {
@@ -212,6 +232,13 @@ public class PlayerController : MonoBehaviour
         // Sprite Flip
         if (rb.velocity.x > 0.1) sr.flipX = false;
         else if (rb.velocity.x < -0.1) sr.flipX = true;
+
+        // Landing sound effect
+        if (!landed && !jumped)
+        {
+            landed = true;
+            audioManager.source.PlayOneShot(audioManager.Land);
+        }
     }
 
     private void FixedUpdate()
@@ -268,9 +295,13 @@ public class PlayerController : MonoBehaviour
         //Debug.Log("Hit " + col.gameObject.tag);
         if (col.gameObject.tag == "Hazard")
         {
+            jumped = false;
+            landed = false;
             animator.SetBool("isJumping", false);
             animator.SetBool("isFalling", true);
             falling = true;
+
+            audioManager.source.PlayOneShot(audioManager.HitHazard);
 
             //Vector2 dir = (col.gameObject.transform.position - gameObject.transform.position).normalized;
             //Debug.Log(dir.x);
