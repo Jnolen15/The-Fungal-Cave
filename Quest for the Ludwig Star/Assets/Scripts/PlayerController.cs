@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     public TimeControl tc;
     public float knockbackH;
     public float knockbackV;
+    public GameObject fx;
 
     // Start is called before the first frame update
     void Start()
@@ -132,6 +133,10 @@ public class PlayerController : MonoBehaviour
                 coyoteTimeCounter = 0f;
 
                 animator.SetBool("isJumping", true);
+
+                GameObject particle = Instantiate(fx);
+                particle.transform.position = transform.position;
+                Destroy(particle, 3f);
 
                 Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
                 rb.velocity = new Vector2(rb.velocity.x, 0);

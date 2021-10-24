@@ -7,6 +7,7 @@ public class StarControl : MonoBehaviour
     // Private variables
     private Rigidbody2D rb;
     public PlayerController pc;
+    public GameObject fx;
 
     // Public variables
     public Vector2 direction;
@@ -26,6 +27,9 @@ public class StarControl : MonoBehaviour
         else if (life <= 0)
         {
             pc.starOut = false;
+            GameObject particle = Instantiate(fx);
+            particle.transform.position = transform.position;
+            Destroy(particle, 3f);
             Destroy(gameObject);
         }
     }
@@ -38,17 +42,31 @@ public class StarControl : MonoBehaviour
             Vector3 reflect = Vector3.Reflect(transform.right, col.contacts[0].normal);
             float rot = 90 - Mathf.Atan2(reflect.z, reflect.x) * Mathf.Rad2Deg;
             transform.eulerAngles = new Vector3(0, 0, rot);
+
+            GameObject particle = Instantiate(fx);
+            particle.transform.position = transform.position;
+            Destroy(particle, 3f);
         }
 
         if (col.gameObject.tag == "Hazard")
         {
             pc.starOut = false;
+
+            GameObject particle = Instantiate(fx);
+            particle.transform.position = transform.position;
+            Destroy(particle, 3f);
+
             Destroy(gameObject);
         }
 
         if (col.gameObject.tag == "Ground")
         {
             pc.starOut = false;
+
+            GameObject particle = Instantiate(fx);
+            particle.transform.position = transform.position;
+            Destroy(particle, 3f);
+
             Destroy(gameObject);
         }
     }
