@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private float starBufferCounter;
+    private float floatCounter;
     private Vector3 aimDir = Vector3.right;
     private bool throwMode = false;
     public bool falling = false;
@@ -30,6 +31,7 @@ public class PlayerController : MonoBehaviour
     public float jumpBufferTime;
     public float starBufferTime;
     public float faceplantBufferTime;
+    public float floatTime;
     public LayerMask groundLayer;
     public LayerMask hazardLayer;
     public GameObject star;
@@ -86,6 +88,9 @@ public class PlayerController : MonoBehaviour
                     throwMode = false;
                     starOut = true;
                     starBufferCounter = starBufferTime;
+
+                    // Start float
+                    floatCounter = floatTime;
                 }
             }
 
@@ -189,7 +194,10 @@ public class PlayerController : MonoBehaviour
         else if (jumpBufferCounter > 0) jumpBufferCounter -= Time.deltaTime;
 
         // Star Buffer
-        if(starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
+        if (starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
+
+        // Float Time
+        if (floatCounter > 0) floatCounter -= Time.deltaTime;
 
         // Reset anims
         if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1) animator.SetBool("isJumping", false);
@@ -217,8 +225,16 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
-                rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+                if(floatCounter > 0)
+                {
+                    rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
+                    rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), Mathf.Clamp(rb.velocity.y, 0, jumpHeight*starBonus));
+                }
+                else
+                {
+                    rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
+                    rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+                }
             }
         }
 
