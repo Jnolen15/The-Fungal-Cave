@@ -332,6 +332,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        //Debug.Log("Hit " + col.gameObject.tag);
+        if (col.gameObject.tag == "End")
+        {
+            SpeedRunTimer.timerInstance.EndTimer();
+        }
+    }
+
     private void Knockback(float horizontalKB, float verticalKB)
     {
         Vector2 knockbackForce = new Vector2(horizontalKB, verticalKB);

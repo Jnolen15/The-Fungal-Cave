@@ -8,6 +8,7 @@ TagManager:
   - Star
   - Hazard
   - Bounce
+  - End
   layers:
   - Default
   - TransparentFX
