@@ -49,11 +49,12 @@ public class SpeedRunTimer : MonoBehaviour
     {
         while (timerGoing)
         {
+            elapsedTime += Time.deltaTime;
+            timePlaying = TimeSpan.FromSeconds(elapsedTime);
+            timePlayingStr = timePlaying.ToString("mm':'ss'.'ff");
+
             if (showtimer)
             {
-                elapsedTime += Time.deltaTime;
-                timePlaying = TimeSpan.FromSeconds(elapsedTime);
-                timePlayingStr = timePlaying.ToString("mm':'ss'.'ff");
                 timeCounter.text = timePlayingStr;
             } else
             {
