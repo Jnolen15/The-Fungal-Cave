@@ -19,7 +19,6 @@ public class PlayerController : MonoBehaviour
     public bool canGetUp = false;
     public bool landed = true;
     public bool jumped = false;
-    private bool startedDialogue = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -48,6 +47,7 @@ public class PlayerController : MonoBehaviour
     public AudioManager audioManager;
     public DialogueTrigger dialogueTrigger;
     public DialogueManager dialogueManager;
+    public bool startedDialogue = false;
 
     // Start is called before the first frame update
     void Start()

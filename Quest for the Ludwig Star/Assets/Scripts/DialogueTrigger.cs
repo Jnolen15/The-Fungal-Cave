@@ -12,4 +12,9 @@ public class DialogueTrigger : MonoBehaviour
         FindObjectOfType<DialogueManager>().StartDialogue(dialogue);
     }
 
+    public void addTime(string finalTime)
+    {
+        dialogue.sentences[6] = dialogue.sentences[6] + finalTime;
+    }
+
 }

@@ -7,13 +7,16 @@ using UnityEngine.UI;
 public class SpeedRunTimer : MonoBehaviour
 {
     public static SpeedRunTimer timerInstance;
-
     public Text timeCounter;
+    public DialogueTrigger dialogueTrigger;
+    public bool showtimer = true;
 
     private TimeSpan timePlaying;
     private bool timerGoing;
 
     private float elapsedTime;
+
+    private string timePlayingStr ="";
 
     private void Awake()
     {
@@ -22,7 +25,7 @@ public class SpeedRunTimer : MonoBehaviour
 
     void Start()
     {
-        timeCounter.text = "00:00.00";
+        timeCounter.text = "";
         timerGoing = false;
 
         BeginTimer();
@@ -39,18 +42,27 @@ public class SpeedRunTimer : MonoBehaviour
     public void EndTimer()
     {
         timerGoing = false;
+        dialogueTrigger.addTime(timePlayingStr);
     }
 
     private IEnumerator StartTimer()
     {
         while (timerGoing)
         {
-            elapsedTime += Time.deltaTime;
-            timePlaying = TimeSpan.FromSeconds(elapsedTime);
-            string timePlayingStr = timePlaying.ToString("mm':'ss'.'ff");
-            timeCounter.text = timePlayingStr;
+            if (showtimer)
+            {
+                elapsedTime += Time.deltaTime;
+                timePlaying = TimeSpan.FromSeconds(elapsedTime);
+                timePlayingStr = timePlaying.ToString("mm':'ss'.'ff");
+                timeCounter.text = timePlayingStr;
+            } else
+            {
+                timeCounter.text = "";
+            }
 
             yield return null;
         }
     }
+
+    public void TimerOn(bool value) { showtimer = value; }
 }
