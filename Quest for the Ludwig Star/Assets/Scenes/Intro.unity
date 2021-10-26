@@ -10374,7 +10374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a40c83e5ffc3cda4198f66b4ff5c4bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0.001, y: 0, z: 0}
+  speed: {x: 0.01, y: 0, z: 0}
   dialogueTrigger: {fileID: 186885667}
   dialogueManager: {fileID: 186885668}
 --- !u!1 &1165410047
