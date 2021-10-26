@@ -14,4 +14,6 @@ public class AudioManager : MonoBehaviour
     public AudioClip MushroomBounce;
     public AudioClip MushroomBreak;
     public AudioClip MushroomThrow;
+    public AudioClip Talk1;
+    public AudioClip Talk2;
 }

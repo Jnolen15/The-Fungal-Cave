@@ -9,7 +9,7 @@ public class MenuManager : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("Level");
+        SceneManager.LoadScene("Intro");
     }
 
     public void QuitGame()

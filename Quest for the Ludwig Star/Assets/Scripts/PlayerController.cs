@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
     public bool canGetUp = false;
     public bool landed = true;
     public bool jumped = false;
+    private bool startedDialogue = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -45,6 +46,8 @@ public class PlayerController : MonoBehaviour
     public float knockbackV;
     public GameObject fx;
     public AudioManager audioManager;
+    public DialogueTrigger dialogueTrigger;
+    public DialogueManager dialogueManager;
 
     // Start is called before the first frame update
     void Start()
@@ -60,185 +63,189 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // If not falling normal movement
-        if (!falling && !faceplant)
+        if (!startedDialogue)
         {
-            // Throw Mode (Only if star isn't already out)
-            if (!starOut)
+            // If not falling normal movement
+            if (!falling && !faceplant)
             {
-                if (Input.GetButtonDown("Throw")) // When button is pressed
+                // Throw Mode (Only if star isn't already out)
+                if (!starOut)
                 {
-                    throwMode = true;
-                    reticle.GetComponent<SpriteRenderer>().enabled = true;
-                    //tc.doSlowMotion();
-                }
-                if (Input.GetButton("Throw")) // While button is down
-                {
-                    if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                    if (Input.GetButtonDown("Throw")) // When button is pressed
                     {
-                        aimDir = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                        throwMode = true;
+                        reticle.GetComponent<SpriteRenderer>().enabled = true;
+                        //tc.doSlowMotion();
                     }
-                    reticle.transform.position = this.transform.position + aimDir;
-                }
-                if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
-                {
-                    //tc.resetTime = true;
-                    reticle.GetComponent<SpriteRenderer>().enabled = false;
-                    currentStar = Instantiate(star, transform.position, transform.rotation);
-                    currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
-                    currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
-                    Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
-                    throwMode = false;
-                    starOut = true;
-                    starBufferCounter = starBufferTime;
-
-                    audioManager.source.PlayOneShot(audioManager.MushroomThrow);
-
-                    // Start float
-                    floatCounter = floatTime;
-                }
-            }
-
-            //Movement if not in throw mode
-            if (!throwMode)
-            {
-                // On the ground movement
-                if (Grounded())
-                {
-                    if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
-                    // If touching left wall only move away
-                    else if (TouchingWallLeft())
+                    if (Input.GetButton("Throw")) // While button is down
                     {
-                        if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                        else horizontalMove = 0;
+                        if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                        {
+                            aimDir = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                        }
+                        reticle.transform.position = this.transform.position + aimDir;
                     }
-                    // If touching right wall only move away
-                    else if (TouchingWallRight())
+                    if (Input.GetButtonUp("Throw") && throwMode) // When button is let go
                     {
-                        if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                        else horizontalMove = 0;
+                        //tc.resetTime = true;
+                        reticle.GetComponent<SpriteRenderer>().enabled = false;
+                        currentStar = Instantiate(star, transform.position, transform.rotation);
+                        currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
+                        currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
+                        Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
+                        throwMode = false;
+                        starOut = true;
+                        starBufferCounter = starBufferTime;
+
+                        audioManager.source.PlayOneShot(audioManager.MushroomThrow);
+
+                        // Start float
+                        floatCounter = floatTime;
                     }
-                } // If touching a wall in air
-                else if (TouchingWallLeft() || TouchingWallRight())
+                }
+
+                //Movement if not in throw mode
+                if (!throwMode)
                 {
-                    horizontalMove = 0;
-                } // In air movement
+                    // On the ground movement
+                    if (Grounded())
+                    {
+                        if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
+                        // If touching left wall only move away
+                        else if (TouchingWallLeft())
+                        {
+                            if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                            else horizontalMove = 0;
+                        }
+                        // If touching right wall only move away
+                        else if (TouchingWallRight())
+                        {
+                            if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
+                            else horizontalMove = 0;
+                        }
+                    } // If touching a wall in air
+                    else if (TouchingWallLeft() || TouchingWallRight())
+                    {
+                        horizontalMove = 0;
+                    } // In air movement
+                    else
+                    {
+                        horizontalMove = Input.GetAxisRaw("Horizontal");
+                    }
+                }
                 else
                 {
-                    horizontalMove = Input.GetAxisRaw("Horizontal");
+                    if (Grounded()) horizontalMove = 0;
+                }
+
+                // Star Jump
+                if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
+                {
+                    starOut = false;
+                    Destroy(currentStar);
+                    starBufferCounter = starBufferTime * 2;
+                    jumpBufferCounter = 0f;
+                    coyoteTimeCounter = 0f;
+
+                    jumped = true;
+                    landed = false;
+                    animator.SetBool("isJumping", true);
+
+                    GameObject particle = Instantiate(fx);
+                    particle.transform.position = transform.position;
+                    Destroy(particle, 3f);
+
+                    Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
+                    rb.velocity = new Vector2(rb.velocity.x, 0);
+                    rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
+
+                    audioManager.source.PlayOneShot(audioManager.Jump);
+                }
+                // Normal Jump
+                else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
+                {
+                    jumpBufferCounter = 0f;
+                    coyoteTimeCounter = 0f;
+
+                    jumped = true;
+                    landed = false;
+                    animator.SetBool("isJumping", true);
+
+                    Vector2 jumpForce = new Vector2(0, jumpHeight);
+                    rb.velocity = new Vector2(rb.velocity.x, 0);
+                    rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
+
+                    //audioManager.source.PlayOneShot(audioManager.Land);
+                }
+
+            }
+            // If falling
+            else if (falling)
+            {
+                // When you hit the ground
+                if (Grounded())
+                {
+                    rb.velocity = new Vector2(0, 0);
+                    faceplant = true;
+                    canGetUp = false;
+                    falling = false;
+                    landed = true;
+                    audioManager.source.PlayOneShot(audioManager.Faceplant);
+                    animator.SetBool("isFalling", false);
+                    animator.SetBool("isFaceplant", true);
+                    StartCoroutine(faceplantCD());
                 }
             }
-            else
+            // If faceplanted
+            else if (faceplant)
             {
-                if (Grounded()) horizontalMove = 0;
+                rb.velocity = new Vector2(0, rb.velocity.y);
+                horizontalMove = 0;
             }
 
-            // Star Jump
-            if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
+            // Coyote Time
+            if (Grounded()) coyoteTimeCounter = coyoteTime;
+            else if (coyoteTimeCounter > 0) coyoteTimeCounter -= Time.deltaTime;
+
+            // Jump Buffer
+            if (Input.GetButtonDown("Jump")) jumpBufferCounter = jumpBufferTime;
+            else if (jumpBufferCounter > 0) jumpBufferCounter -= Time.deltaTime;
+
+            // Star Buffer
+            if (starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
+
+            // Float Time
+            if (floatCounter > 0) floatCounter -= Time.deltaTime;
+
+            // Reset anims
+            if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1)
             {
-                starOut = false;
-                Destroy(currentStar);
-                starBufferCounter = starBufferTime * 2;
-                jumpBufferCounter = 0f;
-                coyoteTimeCounter = 0f;
-
-                jumped = true;
-                landed = false;
-                animator.SetBool("isJumping", true);
-
-                GameObject particle = Instantiate(fx);
-                particle.transform.position = transform.position;
-                Destroy(particle, 3f);
-
-                Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
-
-                audioManager.source.PlayOneShot(audioManager.Jump);
+                jumped = false;
+                //landed = true;
+                animator.SetBool("isJumping", false);
             }
-            // Normal Jump
-            else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
+            animator.SetFloat("VerticalSpeed", rb.velocity.y);
+            if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0))
             {
-                jumpBufferCounter = 0f;
-                coyoteTimeCounter = 0f;
-
-                jumped = true;
-                landed = false;
-                animator.SetBool("isJumping", true);
-
-                Vector2 jumpForce = new Vector2(0, jumpHeight);
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
-
-                //audioManager.source.PlayOneShot(audioManager.Land);
-            }
-
-        }
-        // If falling
-        else if (falling)
-        {
-            // When you hit the ground
-            if (Grounded())
-            {
-                rb.velocity = new Vector2(0, 0);
-                faceplant = true;
+                faceplant = false;
                 canGetUp = false;
-                falling = false;
+                animator.SetBool("isFaceplant", false);
+            }
+
+            // Sprite Flip
+            if (rb.velocity.x > 0.1) sr.flipX = false;
+            else if (rb.velocity.x < -0.1) sr.flipX = true;
+
+            // Landing sound effect
+            if (!landed && !jumped)
+            {
                 landed = true;
-                audioManager.source.PlayOneShot(audioManager.Faceplant);
-                animator.SetBool("isFalling", false);
-                animator.SetBool("isFaceplant", true);
-                StartCoroutine(faceplantCD());
+                audioManager.source.PlayOneShot(audioManager.Land);
             }
         }
-        // If faceplanted
-        else if (faceplant)
-        {
-            rb.velocity = new Vector2(0, rb.velocity.y);
-            horizontalMove = 0;
-        }
-
-        // Coyote Time
-        if (Grounded()) coyoteTimeCounter = coyoteTime;
-        else if (coyoteTimeCounter > 0) coyoteTimeCounter -= Time.deltaTime;
-
-        // Jump Buffer
-        if (Input.GetButtonDown("Jump")) jumpBufferCounter = jumpBufferTime;
-        else if (jumpBufferCounter > 0) jumpBufferCounter -= Time.deltaTime;
-
-        // Star Buffer
-        if (starBufferCounter > 0) starBufferCounter -= Time.deltaTime;
-
-        // Float Time
-        if (floatCounter > 0) floatCounter -= Time.deltaTime;
-
-        // Reset anims
-        if (Grounded() && Mathf.Abs(rb.velocity.y) < 0.1)
-        {
-            jumped = false;
-            //landed = true;
-            animator.SetBool("isJumping", false);
-        }
-        animator.SetFloat("VerticalSpeed", rb.velocity.y);
-        if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0))
-        {
-            faceplant = false;
-            canGetUp = false;
-            animator.SetBool("isFaceplant", false);
-        }
-
-        // Sprite Flip
-        if (rb.velocity.x > 0.1) sr.flipX = false;
-        else if (rb.velocity.x < -0.1) sr.flipX = true;
-
-        // Landing sound effect
-        if (!landed && !jumped)
-        {
-            landed = true;
-            audioManager.source.PlayOneShot(audioManager.Land);
-        }
+        else if (Input.GetKeyDown(KeyCode.Z)) dialogueManager.DisplayNextSentence();
     }
 
     private void FixedUpdate()
@@ -335,9 +342,11 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D col)
     {
         //Debug.Log("Hit " + col.gameObject.tag);
-        if (col.gameObject.tag == "End")
+        if (col.gameObject.tag == "End" && !startedDialogue)
         {
             SpeedRunTimer.timerInstance.EndTimer();
+            dialogueTrigger.TriggerDialogue();
+            startedDialogue = true;
         }
     }
 
