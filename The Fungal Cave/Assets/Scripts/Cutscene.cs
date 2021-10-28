@@ -14,9 +14,7 @@ public class Cutscene : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position += speed;
-
-        if(transform.position.x > -10 && !startedDialogue)
+        if(transform.position.x > -11 && !startedDialogue)
         {
             dialogueTrigger.TriggerDialogue();
             startedDialogue = true;
@@ -30,5 +28,10 @@ public class Cutscene : MonoBehaviour
         {
             SceneManager.LoadScene("Level");
         }
+    }
+
+    private void FixedUpdate()
+    {
+        transform.position += speed;
     }
 }

@@ -14,11 +14,11 @@ public class PlayerController : MonoBehaviour
     private float floatCounter;
     private Vector3 aimDir = Vector3.right;
     private bool throwMode = false;
-    public bool falling = false;
-    public bool faceplant = false;
-    public bool canGetUp = false;
-    public bool landed = true;
-    public bool jumped = false;
+    private bool falling = false;
+    private bool faceplant = false;
+    private bool canGetUp = false;
+    private bool landed = true;
+    private bool jumped = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
     public float speed;
     public float jumpHeight;
     public float midAirControl;
+    public float airBrake;
     public float coyoteTime;
     public float jumpBufferTime;
     public float starBufferTime;
@@ -252,22 +253,48 @@ public class PlayerController : MonoBehaviour
     {
         if (!falling)
         {
-            if (Grounded())
+            if (Grounded()) // Ground movement
             {
                 animator.SetFloat("HorizontalMovement", Mathf.Abs(horizontalMove));
                 rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
             }
-            else
+            else // In air movement
             {
-                if(floatCounter > 0)
+                if(floatCounter > 0) // Short float after throwing a mushroom ball
                 {
                     rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
                     rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), Mathf.Clamp(rb.velocity.y, 0, jumpHeight*starBonus));
                 }
                 else
                 {
-                    rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
-                    rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+                    if (Mathf.Abs(horizontalMove) > 0.1)
+                    {
+                        rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
+                        rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+                    } else
+                    {
+                        if (rb.velocity.x > 0.1)
+                        {
+                            rb.velocity -= new Vector2(airBrake, 0);
+                            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, 0, +speed), rb.velocity.y);
+                        } else if (rb.velocity.x < -0.1)
+                        {
+                            rb.velocity -= new Vector2(-airBrake, 0);
+                            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, 0), rb.velocity.y);
+                        }
+
+                        /*if (rb.velocity.x > 0.1 || rb.velocity.x < -0.1)
+                        {
+                            rb.velocity -= new Vector2(airBrake, 0);
+                            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
+                        }
+                        else
+                        {
+                            rb.velocity = new Vector2(0, rb.velocity.y);
+                        }*/
+
+                    }
+                    
                 }
             }
         }
