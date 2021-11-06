@@ -14,7 +14,7 @@ public class SpeedRunTimer : MonoBehaviour
     private TimeSpan timePlaying;
     private bool timerGoing;
 
-    private float elapsedTime;
+    public float elapsedTime;
 
     private string timePlayingStr ="";
 
@@ -34,7 +34,7 @@ public class SpeedRunTimer : MonoBehaviour
     public void BeginTimer()
     {
         timerGoing = true;
-        elapsedTime = 0f;
+        //elapsedTime = 0f;
 
         StartCoroutine(StartTimer());
     }

@@ -13,12 +13,13 @@ public class PlayerController : MonoBehaviour
     private float starBufferCounter;
     private float floatCounter;
     private Vector3 aimDir = Vector3.right;
-    private bool throwMode = false;
     private bool falling = false;
     private bool faceplant = false;
     private bool canGetUp = false;
     private bool landed = true;
     private bool jumped = false;
+    private bool throwMode = false;
+    public bool jumpKeyHeld = false;
     private GameObject currentStar;
     private GameObject reticle;
     private Animator animator;
@@ -49,6 +50,7 @@ public class PlayerController : MonoBehaviour
     public DialogueTrigger dialogueTrigger;
     public DialogueManager dialogueManager;
     public bool startedDialogue = false;
+    public Vector2 counterJumpForce;
 
     // Start is called before the first frame update
     void Start()
@@ -72,6 +74,28 @@ public class PlayerController : MonoBehaviour
                 // Throw Mode (Only if star isn't already out)
                 if (!starOut)
                 {
+                    // Directional quick shot way
+                    /*if (Mathf.Abs(Input.GetAxisRaw("HorizontalThrow")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("VerticalThrow")) > 0.1) // When button is pressed
+                    {
+                        if (Mathf.Abs(Input.GetAxisRaw("HorizontalThrow")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("VerticalThrow")) > 0.1)
+                        {
+                            aimDir = new Vector3(Input.GetAxisRaw("HorizontalThrow"), Input.GetAxisRaw("VerticalThrow"));
+                        }
+
+                        currentStar = Instantiate(star, transform.position, transform.rotation);
+                        currentStar.GetComponent<StarControl>().direction = aimDir.normalized;
+                        currentStar.GetComponent<StarControl>().pc = this.gameObject.GetComponent<PlayerController>();
+                        Physics2D.IgnoreCollision(currentStar.GetComponent<BoxCollider2D>(), this.GetComponent<BoxCollider2D>());
+                        starOut = true;
+                        starBufferCounter = starBufferTime;
+
+                        audioManager.source.PlayOneShot(audioManager.MushroomThrow);
+
+                        // Start float
+                        floatCounter = floatTime;
+                    }*/
+
+                    // Hold X to enter aim mode way
                     if (Input.GetButtonDown("Throw")) // When button is pressed
                     {
                         throwMode = true;
@@ -80,9 +104,9 @@ public class PlayerController : MonoBehaviour
                     }
                     if (Input.GetButton("Throw")) // While button is down
                     {
-                        if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1)
+                        if (Mathf.Abs(Input.GetAxisRaw("HorizontalMove")) > 0.1 || Mathf.Abs(Input.GetAxisRaw("VerticalMove")) > 0.1)
                         {
-                            aimDir = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                            aimDir = new Vector3(Input.GetAxisRaw("HorizontalMove"), Input.GetAxisRaw("VerticalMove"));
                         }
                         reticle.transform.position = this.transform.position + aimDir;
                     }
@@ -105,82 +129,82 @@ public class PlayerController : MonoBehaviour
                     }
                 }
 
-                //Movement if not in throw mode
-                if (!throwMode)
+                // On the ground movement
+                if (Grounded())
                 {
-                    // On the ground movement
-                    if (Grounded())
+                    if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("HorizontalMove");
+                    // If touching left wall only move away
+                    else if (TouchingWallLeft())
                     {
-                        if (!(TouchingWallLeft() || TouchingWallRight())) horizontalMove = Input.GetAxisRaw("Horizontal");
-                        // If touching left wall only move away
-                        else if (TouchingWallLeft())
-                        {
-                            if (Input.GetAxisRaw("Horizontal") >= 0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                            else horizontalMove = 0;
-                        }
-                        // If touching right wall only move away
-                        else if (TouchingWallRight())
-                        {
-                            if (Input.GetAxisRaw("Horizontal") <= -0.1) horizontalMove = Input.GetAxisRaw("Horizontal");
-                            else horizontalMove = 0;
-                        }
-                    } // If touching a wall in air
-                    else if (TouchingWallLeft() || TouchingWallRight())
-                    {
-                        horizontalMove = 0;
-                    } // In air movement
-                    else
-                    {
-                        horizontalMove = Input.GetAxisRaw("Horizontal");
+                        if (Input.GetAxisRaw("HorizontalMove") >= 0.1) horizontalMove = Input.GetAxisRaw("HorizontalMove");
+                        else horizontalMove = 0;
                     }
-                }
+                    // If touching right wall only move away
+                    else if (TouchingWallRight())
+                    {
+                        if (Input.GetAxisRaw("HorizontalMove") <= -0.1) horizontalMove = Input.GetAxisRaw("HorizontalMove");
+                        else horizontalMove = 0;
+                    }
+                } // If touching a wall in air
+                else if (TouchingWallLeft() || TouchingWallRight())
+                {
+                    horizontalMove = 0;
+                } // In air movement
                 else
                 {
-                    if (Grounded()) horizontalMove = 0;
+                    horizontalMove = Input.GetAxisRaw("HorizontalMove");
                 }
+            }
+            else
+            {
+                if (Grounded()) horizontalMove = 0;
+            }
 
-                // Star Jump
-                if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
-                {
-                    starOut = false;
-                    Destroy(currentStar);
-                    starBufferCounter = starBufferTime * 2;
-                    jumpBufferCounter = 0f;
-                    coyoteTimeCounter = 0f;
+            // Star Jump
+            if (jumpBufferCounter > 0 && starOverlap && starBufferCounter <= 0)
+            {
+                starOut = false;
+                Destroy(currentStar);
+                starBufferCounter = starBufferTime * 2;
+                jumpBufferCounter = 0f;
+                coyoteTimeCounter = 0f;
 
-                    jumped = true;
-                    landed = false;
-                    animator.SetBool("isJumping", true);
+                jumped = true;
+                landed = false;
+                animator.SetBool("isJumping", true);
 
-                    GameObject particle = Instantiate(fx);
-                    particle.transform.position = transform.position;
-                    Destroy(particle, 3f);
+                GameObject particle = Instantiate(fx);
+                particle.transform.position = transform.position;
+                Destroy(particle, 3f);
 
-                    Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
-                    rb.velocity = new Vector2(rb.velocity.x, 0);
-                    rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
+                Vector2 jumpForce = new Vector2(0, jumpHeight * starBonus);
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight * starBonus));
 
-                    audioManager.source.PlayOneShot(audioManager.Jump);
-                }
-                // Normal Jump
-                else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
-                {
-                    jumpBufferCounter = 0f;
-                    coyoteTimeCounter = 0f;
+                audioManager.source.PlayOneShot(audioManager.Jump);
+            }
+            // Normal Jump
+            else if (jumpBufferCounter > 0 && coyoteTimeCounter > 0f)
+            {
+                jumpBufferCounter = 0f;
+                coyoteTimeCounter = 0f;
 
-                    jumped = true;
-                    landed = false;
-                    animator.SetBool("isJumping", true);
+                jumped = true;
+                landed = false;
+                animator.SetBool("isJumping", true);
 
-                    Vector2 jumpForce = new Vector2(0, jumpHeight);
-                    rb.velocity = new Vector2(rb.velocity.x, 0);
-                    rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
+                Vector2 jumpForce = new Vector2(0, jumpHeight);
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, 0, jumpHeight));
 
-                    //audioManager.source.PlayOneShot(audioManager.Land);
-                }
-
+                //audioManager.source.PlayOneShot(audioManager.Land);
+            }
+            // If let go of the jump key. Shorter jump.
+            else if (Input.GetButtonUp("Jump"))
+            {
+                jumpKeyHeld = false;
             }
             // If falling
             else if (falling)
@@ -211,7 +235,11 @@ public class PlayerController : MonoBehaviour
             else if (coyoteTimeCounter > 0) coyoteTimeCounter -= Time.deltaTime;
 
             // Jump Buffer
-            if (Input.GetButtonDown("Jump")) jumpBufferCounter = jumpBufferTime;
+            if (Input.GetButtonDown("Jump"))
+            {
+                jumpKeyHeld = true;
+                jumpBufferCounter = jumpBufferTime;
+            }
             else if (jumpBufferCounter > 0) jumpBufferCounter -= Time.deltaTime;
 
             // Star Buffer
@@ -228,7 +256,7 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("isJumping", false);
             }
             animator.SetFloat("VerticalSpeed", rb.velocity.y);
-            if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0))
+            if (faceplant && canGetUp && (Input.GetButtonDown("Jump") || Mathf.Abs(Input.GetAxisRaw("HorizontalMove")) > 0))
             {
                 faceplant = false;
                 canGetUp = false;
@@ -267,11 +295,14 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
+                    // Horizontal controll
                     if (Mathf.Abs(horizontalMove) > 0.1)
                     {
                         rb.velocity += new Vector2(horizontalMove * speed * midAirControl * Time.deltaTime, 0);
                         rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
-                    } else
+                    }
+                    // Air Braking 
+                    else
                     {
                         if (rb.velocity.x > 0.1)
                         {
@@ -283,18 +314,12 @@ public class PlayerController : MonoBehaviour
                             rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, 0), rb.velocity.y);
                         }
 
-                        /*if (rb.velocity.x > 0.1 || rb.velocity.x < -0.1)
-                        {
-                            rb.velocity -= new Vector2(airBrake, 0);
-                            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -speed, +speed), rb.velocity.y);
-                        }
-                        else
-                        {
-                            rb.velocity = new Vector2(0, rb.velocity.y);
-                        }*/
-
                     }
-                    
+                    // Limiting jump if its no longer held down
+                    /*if (!jumpKeyHeld && Vector2.Dot(rb.velocity, Vector2.up) > 0)
+                    {
+                        rb.AddForce(counterJumpForce * rb.mass);
+                    }*/
                 }
             }
         }
